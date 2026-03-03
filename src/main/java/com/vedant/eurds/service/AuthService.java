@@ -1,6 +1,7 @@
 package com.vedant.eurds.service;
 
 import com.vedant.eurds.dto.AuthResponse;
+import com.vedant.eurds.dto.LoginFeatureDTO;
 import com.vedant.eurds.dto.LoginRequest;
 import com.vedant.eurds.dto.LoginResponse;
 import com.vedant.eurds.dto.RegisterRequest;
@@ -25,7 +26,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +42,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
+    private final FeatureEngineeringService featureEngineeringService;
 
     @Value("${security.max-failed-attempts}")
     private int maxFailedAttempts;
@@ -52,23 +53,19 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
 
-        // Check if username already taken
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new UserAlreadyExistsException(
                     "Username '" + request.getUsername() + "' is already taken");
         }
 
-        // Check if email already registered
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserAlreadyExistsException(
                     "Email '" + request.getEmail() + "' is already registered");
         }
 
-        // Get default role — every new user gets ROLE_USER
         var userRole = roleRepository.findByRoleName("ROLE_USER")
                 .orElseThrow(() -> new RuntimeException("Default role not found"));
 
-        // Build user entity
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -78,10 +75,8 @@ public class AuthService {
                 .roles(new HashSet<>(Set.of(userRole)))
                 .build();
 
-        // Save to database
         User savedUser = userRepository.save(user);
 
-        // Log audit event
         logAuditEvent("USER_REGISTERED", savedUser.getId(), null,
                 Map.of("username", savedUser.getUsername(),
                         "email", savedUser.getEmail()));
@@ -102,54 +97,60 @@ public class AuthService {
     @Transactional
     public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest) {
 
-        // Find user — throws UsernameNotFoundException if not found
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
-        // Check if account is locked
         if (user.isAccountLocked()) {
             logAuditEvent("LOCKED_ACCOUNT_LOGIN_ATTEMPT", user.getId(), null,
                     Map.of("username", user.getUsername()));
             throw new AccountLockedException("Account is locked due to too many failed attempts");
         }
 
-        // Verify password
         boolean passwordCorrect = passwordEncoder.matches(
                 request.getPassword(), user.getPasswordHash());
 
         if (!passwordCorrect) {
-            // Handle failed login
             handleFailedLogin(user, httpRequest);
             throw new BadCredentialsException("Invalid credentials");
         }
 
-        // ---- Successful login ----
-
-        // Reset failed attempts
+        // Successful login
         user.setFailedAttemptCount(0);
         userRepository.save(user);
 
-        // Log the login attempt
         String ipAddress = getClientIp(httpRequest);
         String deviceInfo = httpRequest.getHeader("User-Agent");
 
+        // Generate JWT token
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+        String token = jwtUtil.generateToken(userDetails);
+
+        // Extract features BEFORE saving login log
+        LoginFeatureDTO features = featureEngineeringService.extractFeatures(
+                user, ipAddress, deviceInfo != null ? deviceInfo : "unknown");
+        int riskScore = featureEngineeringService.calculateRuleBasedRisk(features);
+        String riskLevel = featureEngineeringService.getRiskLevel(riskScore);
+
+        // Save login log with real risk score
         LoginLog loginLog = LoginLog.builder()
                 .userId(user.getId())
                 .ipAddress(ipAddress)
                 .deviceInfo(deviceInfo)
                 .successFlag(true)
-                .riskScore(0) // Will be updated by ML service in Phase 4
+                .riskScore(riskScore)
                 .build();
-
         loginLogRepository.save(loginLog);
 
         // Log audit event
         logAuditEvent("LOGIN_SUCCESS", user.getId(), null,
                 Map.of("ip", ipAddress, "device", deviceInfo != null ? deviceInfo : "unknown"));
 
-        // Generate JWT token
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
-        String token = jwtUtil.generateToken(userDetails);
+        // Log high risk logins
+        if (riskScore >= 70) {
+            logAuditEvent("HIGH_RISK_LOGIN_DETECTED", user.getId(), null,
+                    Map.of("riskScore", riskScore, "ip", ipAddress, "newIp", features.getIsNewIp()));
+            log.warn("High risk login for user: {} score: {}", user.getUsername(), riskScore);
+        }
 
         log.info("User logged in successfully: {}", user.getUsername());
 
@@ -158,8 +159,8 @@ public class AuthService {
                 .tokenType("Bearer")
                 .expiresIn(jwtUtil.getExpiration())
                 .username(user.getUsername())
-                .riskLevel("NORMAL")
-                .riskScore(0)
+                .riskLevel(riskLevel)
+                .riskScore(riskScore)
                 .message("Login successful")
                 .build();
     }
@@ -169,11 +170,9 @@ public class AuthService {
     // ============================================================
 
     private void handleFailedLogin(User user, HttpServletRequest httpRequest) {
-        // Increment failed attempts
         int attempts = user.getFailedAttemptCount() + 1;
         user.setFailedAttemptCount(attempts);
 
-        // Lock account if threshold reached
         if (attempts >= maxFailedAttempts) {
             user.setAccountLocked(true);
             logAuditEvent("ACCOUNT_LOCKED", user.getId(), null,
@@ -183,7 +182,6 @@ public class AuthService {
 
         userRepository.save(user);
 
-        // Log failed attempt
         LoginLog failLog = LoginLog.builder()
                 .userId(user.getId())
                 .ipAddress(getClientIp(httpRequest))
