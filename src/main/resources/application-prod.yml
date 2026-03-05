@@ -38,4 +38,4 @@ security:
     high: 70
 
 server:
-  port: ${PORT:8080}s
+  port: ${PORT:8080}
