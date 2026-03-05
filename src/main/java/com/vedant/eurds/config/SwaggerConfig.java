@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(
-        info = @Info(title = "NEC AI Security Platform", version = "1.0", description = "AI-Powered Secure Enterprise Security Platform"),
+        info = @Info(title = "AI Security Platform", version = "1.0", description = "AI-Powered Secure Enterprise Security Platform"),
         security = @SecurityRequirement(name = "bearerAuth")
 )
 @SecurityScheme(
