@@ -43,6 +43,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
     private final FeatureEngineeringService featureEngineeringService;
+    private final MlService mlService;
 
     @Value("${security.max-failed-attempts}")
     private int maxFailedAttempts;
@@ -128,8 +129,11 @@ public class AuthService {
         // Extract features BEFORE saving login log
         LoginFeatureDTO features = featureEngineeringService.extractFeatures(
                 user, ipAddress, deviceInfo != null ? deviceInfo : "unknown");
-        int riskScore = featureEngineeringService.calculateRuleBasedRisk(features);
-        String riskLevel = featureEngineeringService.getRiskLevel(riskScore);
+
+        // Call ML service for risk prediction
+        MlService.MlPrediction prediction = mlService.predict(features);
+        int riskScore = prediction.getRiskScore();
+        String riskLevel = prediction.getRiskLevel();
 
         // Save login log with real risk score
         LoginLog loginLog = LoginLog.builder()
@@ -152,7 +156,8 @@ public class AuthService {
             log.warn("High risk login for user: {} score: {}", user.getUsername(), riskScore);
         }
 
-        log.info("User logged in successfully: {}", user.getUsername());
+        log.info("User logged in successfully: {} risk={} model={}",
+                user.getUsername(), riskScore, prediction.getModelUsed());
 
         return LoginResponse.builder()
                 .token(token)
