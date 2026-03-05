@@ -32,4 +32,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("UPDATE User u SET u.accountLocked = true WHERE u.username = :username")
     void lockAccount(@Param("username") String username);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE User u SET u.accountLocked = false, u.failedAttemptCount = 0 WHERE u.id = :id")
+    void unlockAccount(@Param("id") UUID id);
+
+    long countByAccountLockedTrue();
+
 }

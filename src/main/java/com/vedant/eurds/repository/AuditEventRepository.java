@@ -14,4 +14,7 @@ public interface AuditEventRepository extends JpaRepository<AuditEvent, Long> {
 
     // Get all events of a specific type — e.g. all HIGH_RISK_DETECTED events
     List<AuditEvent> findByEventTypeOrderByCreatedAtDesc(String eventType);
+
+    // Get the latest 50 audit events for admin dashboard
+    List<AuditEvent> findTop50ByOrderByCreatedAtDesc();
 }

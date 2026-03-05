@@ -40,4 +40,7 @@ public interface LoginLogRepository extends JpaRepository<LoginLog, Long> {
             "AND l.successFlag = false AND l.loginTimestamp > :since")
     long countRecentFailedLogins(@Param("userId") UUID userId,
                                   @Param("since") LocalDateTime since);
+
+    // Get the latest 50 login logs for admin dashboard
+    List<LoginLog> findTop50ByOrderByLoginTimestampDesc();
 }
