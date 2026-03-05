@@ -4,6 +4,14 @@ spring:
     username: postgres.abzhiywyipxpxgvbgvvx
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 1
+      connection-timeout: 20000
+      idle-timeout: 10000
+      max-lifetime: 600000
+      keepalive-time: 30000
+      connection-test-query: SELECT 1
   jpa:
     hibernate:
       ddl-auto: none
@@ -30,4 +38,4 @@ security:
     high: 70
 
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8080}s
