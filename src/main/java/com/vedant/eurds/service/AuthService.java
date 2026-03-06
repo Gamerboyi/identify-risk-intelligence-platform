@@ -175,21 +175,24 @@ public class AuthService {
     // ============================================================
 
     private void handleFailedLogin(User user, HttpServletRequest httpRequest) {
-        int attempts = user.getFailedAttemptCount() + 1;
-        user.setFailedAttemptCount(attempts);
-        log.info("Failed login attempt {} of {} for user: {}", attempts, maxFailedAttempts, user.getUsername());
+        // Re-fetch fresh from DB to avoid stale cache
+        User freshUser = userRepository.findByUsername(user.getUsername())
+                .orElse(user);
+        int attempts = freshUser.getFailedAttemptCount() + 1;
+        freshUser.setFailedAttemptCount(attempts);
+        log.info("Failed login attempt {} of {} for user: {}", attempts, maxFailedAttempts, freshUser.getUsername());
 
         if (attempts >= maxFailedAttempts) {
-            user.setAccountLocked(true);
-            logAuditEvent("ACCOUNT_LOCKED", user.getId(), null,
+            freshUser.setAccountLocked(true);
+            logAuditEvent("ACCOUNT_LOCKED", freshUser.getId(), null,
                     Map.of("reason", "Max failed attempts reached", "attempts", attempts));
-            log.warn("Account locked for user: {}", user.getUsername());
+            log.warn("Account locked for user: {}", freshUser.getUsername());
         }
 
-        userRepository.save(user);
+        userRepository.save(freshUser);
 
         LoginLog failLog = LoginLog.builder()
-                .userId(user.getId())
+                .userId(freshUser.getId())
                 .ipAddress(getClientIp(httpRequest))
                 .deviceInfo(httpRequest.getHeader("User-Agent"))
                 .successFlag(false)
@@ -198,7 +201,7 @@ public class AuthService {
 
         loginLogRepository.save(failLog);
 
-        logAuditEvent("LOGIN_FAILURE", user.getId(), null,
+        logAuditEvent("LOGIN_FAILURE", freshUser.getId(), null,
                 Map.of("attempts", attempts, "ip", getClientIp(httpRequest)));
     }
 
