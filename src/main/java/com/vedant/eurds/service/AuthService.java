@@ -177,6 +177,7 @@ public class AuthService {
     private void handleFailedLogin(User user, HttpServletRequest httpRequest) {
         int attempts = user.getFailedAttemptCount() + 1;
         user.setFailedAttemptCount(attempts);
+        log.info("Failed login attempt {} of {} for user: {}", attempts, maxFailedAttempts, user.getUsername());
 
         if (attempts >= maxFailedAttempts) {
             user.setAccountLocked(true);
