@@ -95,9 +95,8 @@ public class AuthService {
     // ============================================================
     // LOGIN
     // ============================================================
-    @Transactional
+    @Transactional(noRollbackFor = {BadCredentialsException.class, AccountLockedException.class})
     public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest) {
-
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
