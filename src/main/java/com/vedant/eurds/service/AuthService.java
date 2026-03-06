@@ -173,35 +173,30 @@ public class AuthService {
     // ============================================================
     // PRIVATE HELPERS
     // ============================================================
-
     private void handleFailedLogin(User user, HttpServletRequest httpRequest) {
-        // Re-fetch fresh from DB to avoid stale cache
-        User freshUser = userRepository.findByUsername(user.getUsername())
-                .orElse(user);
-        int attempts = freshUser.getFailedAttemptCount() + 1;
-        freshUser.setFailedAttemptCount(attempts);
-        log.info("Failed login attempt {} of {} for user: {}", attempts, maxFailedAttempts, freshUser.getUsername());
+        userRepository.incrementFailedAttempts(user.getUsername());
+
+        User freshUser = userRepository.findByUsername(user.getUsername()).orElse(user);
+        int attempts = freshUser.getFailedAttemptCount();
+        log.info("Failed login attempt {} of {} for user: {}", attempts, maxFailedAttempts, user.getUsername());
 
         if (attempts >= maxFailedAttempts) {
-            freshUser.setAccountLocked(true);
-            logAuditEvent("ACCOUNT_LOCKED", freshUser.getId(), null,
+            userRepository.lockAccount(user.getUsername());
+            logAuditEvent("ACCOUNT_LOCKED", user.getId(), null,
                     Map.of("reason", "Max failed attempts reached", "attempts", attempts));
-            log.warn("Account locked for user: {}", freshUser.getUsername());
+            log.warn("Account locked for user: {}", user.getUsername());
         }
 
-        userRepository.save(freshUser);
-
         LoginLog failLog = LoginLog.builder()
-                .userId(freshUser.getId())
+                .userId(user.getId())
                 .ipAddress(getClientIp(httpRequest))
                 .deviceInfo(httpRequest.getHeader("User-Agent"))
                 .successFlag(false)
                 .riskScore(null)
                 .build();
-
         loginLogRepository.save(failLog);
 
-        logAuditEvent("LOGIN_FAILURE", freshUser.getId(), null,
+        logAuditEvent("LOGIN_FAILURE", user.getId(), null,
                 Map.of("attempts", attempts, "ip", getClientIp(httpRequest)));
     }
 
