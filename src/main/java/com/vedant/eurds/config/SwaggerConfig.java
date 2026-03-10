@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(
-        info = @Info(title = "AI Security Platform", version = "1.0", description = "AI-Powered Secure Enterprise Security Platform"),
+        info = @Info(title = "IRIP — Intelligent Risk Intelligence Platform", version = "1.0", description = "AI-Powered Intelligent Risk Intelligence Platform"),
         security = @SecurityRequirement(name = "bearerAuth")
 )
 @SecurityScheme(

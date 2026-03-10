@@ -136,7 +136,7 @@ export default function UsersPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-500 text-xs">
-                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
+                      {user.createdAt ? new Date(user.createdAt.endsWith('Z') ? user.createdAt : `${user.createdAt}Z`).toLocaleString() : '—'}
                     </td>
                     <td className="px-6 py-4 text-right">
                       {user.accountLocked && (

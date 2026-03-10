@@ -12,11 +12,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.nec</groupId>
+    <groupId>com.vedant</groupId>
     <artifactId>security-platform</artifactId>
     <version>1.0.0</version>
-    <name>NEC AI Security Platform</name>
-    <description>AI-Powered Secure Enterprise Security Platform</description>
+    <name>IRIP — Intelligent Risk Intelligence Platform</name>
+    <description>AI-Powered Intelligent Risk Intelligence Platform</description>
 
     <properties>
         <java.version>17</java.version>

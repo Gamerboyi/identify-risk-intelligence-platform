@@ -70,19 +70,22 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
+  // Helper to force UTC so the browser correctly translates to India Standard Time (or the user's local timezone)
+  const ensureUtc = (dateStr: string) => dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`;
+
   // Build chart data from real login logs
   const riskChartData = loginLogs
     .filter(l => l.riskScore !== null)
     .reverse()
     .map((l, i) => ({
-      time: l.loginTimestamp ? new Date(l.loginTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : `#${i}`,
+      time: l.loginTimestamp ? new Date(ensureUtc(l.loginTimestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : `#${i}`,
       score: l.riskScore || 0,
     }));
 
   const trafficChartData = loginLogs
     .reverse()
     .reduce((acc: Record<string, number>, l) => {
-      const hour = l.loginTimestamp ? new Date(l.loginTimestamp).toLocaleTimeString([], { hour: '2-digit' }) : 'N/A';
+      const hour = l.loginTimestamp ? new Date(ensureUtc(l.loginTimestamp)).toLocaleTimeString([], { hour: '2-digit' }) : 'N/A';
       acc[hour] = (acc[hour] || 0) + 1;
       return acc;
     }, {});
@@ -212,7 +215,7 @@ export default function Dashboard() {
                       {event.eventType}
                     </span>
                     <span className="text-slate-600">
-                      {event.createdAt ? new Date(event.createdAt).toLocaleTimeString() : ''}
+                      {event.createdAt ? new Date(ensureUtc(event.createdAt)).toLocaleTimeString() : ''}
                     </span>
                   </div>
                   {event.eventData && (

@@ -44,7 +44,7 @@ export default function Layout() {
       <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col hidden md:flex">
         <div className="h-16 flex items-center px-6 border-b border-slate-800 shrink-0">
           <ShieldAlert className="text-blue-500 mr-2" size={24} />
-          <span className="text-white font-bold tracking-wider">EURDS SOC</span>
+          <span className="text-white font-bold tracking-wider">IRIP SOC</span>
         </div>
         
         <nav className="flex-1 px-4 py-6 space-y-1">
@@ -95,7 +95,7 @@ export default function Layout() {
         <header className="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 shrink-0 md:hidden">
           <div className="flex items-center">
              <ShieldAlert className="text-blue-500 mr-2" size={24} />
-             <span className="text-white font-bold">EURDS</span>
+             <span className="text-white font-bold">IRIP</span>
           </div>
           <button onClick={handleLogout} className="text-slate-400">
             <LogOut size={20} />
