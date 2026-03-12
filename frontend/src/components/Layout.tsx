@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+
 import { Outlet, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Shield, Activity, LogOut, ShieldAlert } from 'lucide-react';
 import clsx from 'clsx';

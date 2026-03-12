@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Shield, Plus, Trash2, Power, PowerOff, ShieldAlert, Loader2 } from 'lucide-react';
 import apiClient from '../api/client';
 

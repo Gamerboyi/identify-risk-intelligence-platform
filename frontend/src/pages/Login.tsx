@@ -171,6 +171,18 @@ export default function Login() {
             )}
           </button>
         </div>
+
+        {/* API Docs Link */}
+        <div className="mt-4 pt-4 border-t border-slate-800 text-center">
+          <a
+            href="https://identify-risk-intelligence-platform-api.onrender.com/swagger-ui/index.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-slate-500 hover:text-blue-400 transition-colors"
+          >
+            Explore API Documentation →
+          </a>
+        </div>
       </div>
     </div>
   );

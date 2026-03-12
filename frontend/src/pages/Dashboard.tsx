@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Activity, ShieldBan, ShieldAlert, Cpu, AlertTriangle, Users, Clock } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { Activity, ShieldBan, ShieldAlert, Cpu, AlertTriangle, Clock } from 'lucide-react';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import apiClient from '../api/client';
 
 interface AuditEvent {
@@ -82,15 +82,6 @@ export default function Dashboard() {
       score: l.riskScore || 0,
     }));
 
-  const trafficChartData = loginLogs
-    .reverse()
-    .reduce((acc: Record<string, number>, l) => {
-      const hour = l.loginTimestamp ? new Date(ensureUtc(l.loginTimestamp)).toLocaleTimeString([], { hour: '2-digit' }) : 'N/A';
-      acc[hour] = (acc[hour] || 0) + 1;
-      return acc;
-    }, {});
-
-  const trafficData = Object.entries(trafficChartData).map(([time, count]) => ({ time, count }));
 
   return (
     <div className="space-y-6">
