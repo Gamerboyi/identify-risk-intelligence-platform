@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(
-        info = @Info(title = "IRIP — Intelligent Risk Intelligence Platform", version = "1.0", description = "AI-Powered Intelligent Risk Intelligence Platform. Live Dashboard: https://identify-risk-intelligence-platform-lovat.vercel.app"),
+        info = @Info(title = "IRIP — Intelligent Risk Intelligence Platform", version = "1.0", description = "AI-Powered Intelligent Risk Intelligence Platform. To view the live frontend dashboard, [click here](https://identify-risk-intelligence-platform-lovat.vercel.app)"),
         security = @SecurityRequirement(name = "bearerAuth")
 )
 @SecurityScheme(
