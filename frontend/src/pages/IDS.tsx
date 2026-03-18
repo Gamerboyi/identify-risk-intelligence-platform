@@ -16,15 +16,22 @@ export default function IDS() {
     setLoading(true);
     try {
       // Create x-www-form-urlencoded params since the Controller uses @RequestParam
-      const params = new URLSearchParams();
-      params.append('ipAddress', ipAddress);
-      params.append('requestUri', requestUri);
-      if (requestBody) params.append('requestBody', requestBody);
+      const query = new URLSearchParams();
+      query.append('ipAddress', ipAddress);
+      query.append('requestUri', requestUri);
+      if (requestBody) query.append('requestBody', requestBody);
 
-      const response = await apiClient.post('/ids/analyze', params);
+      // Send via Query String so we completely bypass the JSON vs Form-Data body argument!
+      const response = await apiClient.post(`/ids/analyze?${query.toString()}`);
       setAnalysis(response.data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Analysis failed', err);
+      // Display the actual error payload on the screen instead of failing silently
+      setAnalysis({ 
+        isThreat: true, 
+        threats: ['ERROR: ' + (err.response?.data?.message || err.message)],
+        errorData: err.response?.data
+      });
     } finally {
       setLoading(false);
     }

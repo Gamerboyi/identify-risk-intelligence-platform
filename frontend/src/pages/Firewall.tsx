@@ -112,13 +112,13 @@ export default function Firewall() {
                     <td className="px-6 py-4">{rule.priority}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end space-x-3">
-                        <button 
+                        <button
                           onClick={() => handleToggle(rule.id)}
                           className={`p-1.5 rounded-md transition-colors ${rule.active ? 'text-rose-400 hover:bg-rose-500/10' : 'text-emerald-400 hover:bg-emerald-500/10'}`}
                         >
                           {rule.active ? <PowerOff size={18} /> : <Power size={18} />}
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDelete(rule.id)}
                           className="p-1.5 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-md transition-colors"
                         >
