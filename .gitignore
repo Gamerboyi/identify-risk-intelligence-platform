@@ -43,3 +43,9 @@ build/
 ml-service/venv/
 ml-service/__pycache__/
 ml-service/model/*.pkl
+
+### Personal Notes ###
+THEORY_NOTES*.md
+fix-git.ps1
+fix_date_step.ps1
+date_state.txt
