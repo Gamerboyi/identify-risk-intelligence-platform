@@ -12,12 +12,18 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update        # use 'validate' in production
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
 
 # REQUIRED: Set JWT_SECRET env var. Generate with: openssl rand -hex 32
 jwt:

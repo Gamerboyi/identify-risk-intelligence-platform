@@ -73,6 +73,12 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- ===== DATABASE MIGRATIONS ===== -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
         <!-- ===== VALIDATION ===== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
