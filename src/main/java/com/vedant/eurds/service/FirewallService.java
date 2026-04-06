@@ -1,6 +1,8 @@
 package com.vedant.eurds.service;
 
 import com.vedant.eurds.dto.FirewallRuleDTO;
+import com.vedant.eurds.exception.DuplicateResourceException;
+import com.vedant.eurds.exception.ResourceNotFoundException;
 import com.vedant.eurds.model.AuditEvent;
 import com.vedant.eurds.model.FirewallRule;
 import com.vedant.eurds.repository.AuditEventRepository;
@@ -25,7 +27,7 @@ public class FirewallService {
     @Transactional
     public FirewallRule addRule(FirewallRuleDTO dto, UUID createdBy) {
         if (firewallRuleRepository.existsByRuleName(dto.getRuleName())) {
-            throw new RuntimeException("Rule already exists: " + dto.getRuleName());
+            throw new DuplicateResourceException("Rule already exists: " + dto.getRuleName());
         }
         FirewallRule rule = FirewallRule.builder()
                 .ruleName(dto.getRuleName())
@@ -54,7 +56,7 @@ public class FirewallService {
     @Transactional
     public FirewallRule toggleRule(Integer ruleId, boolean active, UUID updatedBy) {
         FirewallRule rule = firewallRuleRepository.findById(ruleId)
-                .orElseThrow(() -> new RuntimeException("Rule not found: " + ruleId));
+                .orElseThrow(() -> new ResourceNotFoundException("Rule not found: " + ruleId));
         rule.setActive(active);
         FirewallRule updated = firewallRuleRepository.save(rule);
         String eventType = active ? "FIREWALL_RULE_ENABLED" : "FIREWALL_RULE_DISABLED";
@@ -65,7 +67,7 @@ public class FirewallService {
     @Transactional
     public void deleteRule(Integer ruleId, UUID deletedBy) {
         FirewallRule rule = firewallRuleRepository.findById(ruleId)
-                .orElseThrow(() -> new RuntimeException("Rule not found: " + ruleId));
+                .orElseThrow(() -> new ResourceNotFoundException("Rule not found: " + ruleId));
         firewallRuleRepository.delete(rule);
         logAudit("FIREWALL_RULE_DELETED", deletedBy, Map.of("ruleName", rule.getRuleName()));
     }

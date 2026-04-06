@@ -73,6 +73,22 @@ public class GlobalExceptionHandler {
                 .body(buildError("ACCESS_DENIED", "You don't have permission to access this resource", 403));
     }
 
+    // Handle resource not found (firewall rule, user, etc.)
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(
+            ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(buildError("NOT_FOUND", ex.getMessage(), 404));
+    }
+
+    // Handle duplicate resource (rule name already exists, etc.)
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicate(
+            DuplicateResourceException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(buildError("DUPLICATE_RESOURCE", ex.getMessage(), 409));
+    }
+
     // Catch everything else — never expose stack traces to client
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleAll(Exception ex) {
